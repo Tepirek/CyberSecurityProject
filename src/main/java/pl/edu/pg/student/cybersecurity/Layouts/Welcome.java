@@ -13,16 +13,24 @@ public class Welcome extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
         setTitle("CryptoSecurity - version 1.0");
+        setVisible(true);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setVisible(true);
 
-        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.fill = GridBagConstraints.ABOVE_BASELINE;
         constraints.gridx = 0;
         constraints.gridy = 0;
+        constraints.ipadx = 20;
+        constraints.ipady = 20;
+
         welcomeMessage.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        this.add(welcomeMessage);
+        this.add(welcomeMessage, constraints);
+
+        constraints.fill = GridBagConstraints.CENTER;
+        constraints.gridx = 0;
+        constraints.gridy = 4;
+        loginButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.add(loginButton, constraints);
     }
 }
