@@ -1,22 +1,23 @@
 package pl.edu.pg.student.cybersecurity;
 
-import pl.edu.pg.student.cybersecurity.System.Decryptor;
-import pl.edu.pg.student.cybersecurity.System.KeyHandler;
-
-import java.io.File;
-import java.security.Key;
+import pl.edu.pg.student.cybersecurity.Layouts.Dashboard;
+import pl.edu.pg.student.cybersecurity.Layouts.Login;
+import pl.edu.pg.student.cybersecurity.Layouts.Register;
+import pl.edu.pg.student.cybersecurity.Layouts.Welcome;
+import pl.edu.pg.student.cybersecurity.System.Api;
 
 public class App {
 
     public static void main(String[] args) {
 
         // Welcome welcome = new Welcome();
-        Integer size = 512;
-        File file = new File("./testing/test2_encrypted.txt");
-        KeyHandler keyHandler = new KeyHandler(size);
-
-        Decryptor decryptor = new Decryptor(keyHandler.getPrivateKey(), file);
-        decryptor.decrypt();
+        Dashboard dashboard = new Dashboard();
+        // Api api = new Api();
+//        api.insert("aro", "aro");
+//        api.insert("tomek", "aro");
+//        api.getUser("login", "aro");
+//        api.updateEmail("aro", "test@wp.pl");
+//        api.getUsers();
     }
     
 }
