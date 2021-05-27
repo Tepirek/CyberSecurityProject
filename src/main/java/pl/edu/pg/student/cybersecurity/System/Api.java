@@ -2,8 +2,10 @@ package pl.edu.pg.student.cybersecurity.System;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 public class Api {
 
@@ -18,6 +20,9 @@ public class Api {
         connect();
     }
 
+    /**
+     * Connects to the database.
+     */
     private void connect() {
         if(connection != null) return;
         try {
@@ -30,18 +35,22 @@ public class Api {
         }
     }
 
-    public Map<String, String> findAll() {
+    /**
+     *
+     * @return
+     */
+    public List<User> getUsers() {
         String query = "SELECT * FROM users";
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
+            if(!resultSet.next()) return null;
+            List<User> users = new ArrayList<>();
             while (resultSet.next()) {
-                int id = resultSet.getInt("user_id");
-                String login = resultSet.getString("user_login");
-                String password = resultSet.getString("user_password");
-                String email = resultSet.getString("user_email");
-                String timestamp = resultSet.getString("created_at");
-                System.out.printf("%2d. %s\t %s\t %s\t %s\n", id, login, password, email, timestamp);
+                User user = new User(resultSet.getString("user_login"), resultSet.getString("user_email"));
+                users.add(user);
+                System.out.println(user);
             }
+            return users;
         } catch (SQLException ex) {
             // handle any errors
             System.out.println("SQLException: " + ex.getMessage());
@@ -51,7 +60,16 @@ public class Api {
         return null;
     }
 
-    public boolean insert(String login, String password) {
+    /**
+     *
+     * @param login user's login
+     * @param password user's password
+     * @return TRUE if the operation was successful, otherwise FALSE
+     */
+    public List<Object> insert(String login, String password) {
+        if(getUser("login", login) != null) {
+            return new ArrayList<>(Arrays.asList(false, "Login already exits!"));
+        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         String dateString = simpleDateFormat.format(date);
@@ -61,14 +79,14 @@ public class Api {
             statement.setString(2, password);
             statement.setString(3, dateString);
             statement.executeUpdate();
-            return true;
+            return new ArrayList<>(Arrays.asList(true, "Success!"));
         } catch (SQLException ex) {
             // handle any errors
             System.out.println("SQLException: " + ex.getMessage());
             System.out.println("SQLState: " + ex.getSQLState());
             System.out.println("VendorError: " + ex.getErrorCode());
         }
-        return false;
+        return new ArrayList<>(Arrays.asList(false, "Something went wrong!"));
     }
 
     /**
@@ -77,19 +95,48 @@ public class Api {
      * @param email email to be set
      * @return TRUE if the operation was successful, otherwise FALSE
      */
-    public boolean updateEmail(String login, String email) {
+    public List<Object> updateEmail(String login, String email) {
+        if(getUser("login", login) == null) {
+            return new ArrayList<>(Arrays.asList(false, "User with the given login doesn't exits!"));
+        }
+        if(getUser("email", email) != null) {
+            return new ArrayList<>(Arrays.asList(false, "User with the given email already exits!"));
+        }
         String query = "UPDATE users SET user_email = ? WHERE user_login = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, email);
             statement.setString(2, login);
             statement.executeUpdate();
-            return true;
+            return new ArrayList<>(Arrays.asList(true, "Success!"));
         } catch (SQLException ex) {
             // handle any errors
             System.out.println("SQLException: " + ex.getMessage());
             System.out.println("SQLState: " + ex.getSQLState());
             System.out.println("VendorError: " + ex.getErrorCode());
         }
-        return false;
+        return new ArrayList<>(Arrays.asList(false, "Something went wrong!"));
+    }
+
+    /**
+     * Searches for a user that matches the given login.
+     * @param type Type of the selector, either "email" or "login". Default is "login";
+     * @param parameter Parameter based on the selector, either email address or user's login.
+     * @return User OBJECT if user exists, otherwise NULL
+     */
+    public User getUser(String type, String parameter) {
+        String query = null;
+        if(type.equals("email")) query = "SELECT * FROM users WHERE user_email = ?";
+        else query = "SELECT * FROM users WHERE user_login = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, parameter);
+            ResultSet resultSet = statement.executeQuery();
+            if(resultSet.next()) return new User(resultSet.getString("user_login"), resultSet.getString("user_email"));
+            return null;
+        } catch (SQLException ex) {
+            System.out.println("SQLException: " + ex.getMessage());
+            System.out.println("SQLState: " + ex.getSQLState());
+            System.out.println("VendorError: " + ex.getErrorCode());
+        }
+        return null;
     }
 }

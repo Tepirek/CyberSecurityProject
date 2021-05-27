@@ -12,6 +12,11 @@ public class App {
         // Welcome welcome = new Welcome();
 
         Api api = new Api();
+        api.insert("aro", "aro");
+        api.insert("tomek", "aro");
+        api.getUser("login", "aro");
+        api.updateEmail("aro", "test@wp.pl");
+        api.getUsers();
     }
     
 }
