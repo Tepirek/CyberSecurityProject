@@ -4,6 +4,11 @@ import pl.edu.pg.student.cybersecurity.Layouts.Login;
 import pl.edu.pg.student.cybersecurity.Layouts.Register;
 import pl.edu.pg.student.cybersecurity.Layouts.Welcome;
 import pl.edu.pg.student.cybersecurity.System.Api;
+import pl.edu.pg.student.cybersecurity.System.Encryptor;
+import pl.edu.pg.student.cybersecurity.System.KeyHandler;
+import pl.edu.pg.student.cybersecurity.System.User;
+
+import java.io.File;
 
 public class App {
 
@@ -11,12 +16,12 @@ public class App {
 
         // Welcome welcome = new Welcome();
 
-        Api api = new Api();
-        api.insert("aro", "aro");
-        api.insert("tomek", "aro");
-        api.getUser("login", "aro");
-        api.updateEmail("aro", "test@wp.pl");
-        api.getUsers();
+        KeyHandler keyHandler = new KeyHandler(512);
+        File file = new File("test2.txt");
+
+        Encryptor encryptor = new Encryptor(512, keyHandler.getPublicKey(), file);
+        encryptor.encrypt("OnlyRSA");
+
     }
     
 }
