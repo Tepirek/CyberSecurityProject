@@ -10,8 +10,8 @@ public class App {
 
     public static void main(String[] args) {
 
-        // Welcome welcome = new Welcome();
-        Dashboard dashboard = new Dashboard();
+         Welcome welcome = new Welcome();
+        // Dashboard dashboard = new Dashboard();
         // Api api = new Api();
 //        api.insert("aro", "aro");
 //        api.insert("tomek", "aro");

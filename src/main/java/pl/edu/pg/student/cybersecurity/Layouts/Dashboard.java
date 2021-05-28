@@ -19,6 +19,7 @@ public class Dashboard extends JFrame implements ActionListener {
     JTextField mailTextField = new JTextField();
 
     JButton fileButton = new JButton("Choose file");
+    JButton fileButtonDecrypt = new JButton("Choose file");
     JButton directoryButton = new JButton("Choose directory");
     JButton encryptButton = new JButton("Encrypt");
     JButton decryptButton = new JButton("Decrypt");
@@ -29,6 +30,7 @@ public class Dashboard extends JFrame implements ActionListener {
     Container containerAccounts = new Container();
 
     File fileToEncrypt;
+    File fileToDecrypt;
     File directoryToDecrypt;
 
     public Dashboard() {
@@ -136,6 +138,16 @@ public class Dashboard extends JFrame implements ActionListener {
 
 //-----------------------------------------------------------------------------------------//
 
+        fileButtonDecrypt.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        fileButtonDecrypt.setBounds(65, 55, 200, 30);
+        fileButtonDecrypt.setBackground(Color.ORANGE);
+        fileButtonDecrypt.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                choseFileDecrypt();
+            }
+        });
+        containerDecrypt.add(fileButtonDecrypt);
+
         directoryButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         directoryButton.setBounds(65, 85, 200, 30);
         directoryButton.setBackground(Color.ORANGE);
@@ -200,6 +212,16 @@ public class Dashboard extends JFrame implements ActionListener {
         }
     }
 
+    public void choseFileDecrypt() {
+
+        JFileChooser fc = new JFileChooser();
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            this.fileToDecrypt = fc.getSelectedFile();
+            this.fileButtonDecrypt.setText(this.fileToDecrypt.getName());
+        }
+    }
+
     public void chooseDirectory() {
 
         JFileChooser fc = new JFileChooser();
@@ -207,13 +229,16 @@ public class Dashboard extends JFrame implements ActionListener {
         int returnVal = fc.showOpenDialog(this);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             this.directoryToDecrypt = fc.getSelectedFile();
-            this.directoryButton.setText(this.directoryButton.getName());
+            this.directoryButton.setText(this.directoryToDecrypt.getName());
         }
     }
 
     public void logout() {
-        exit(0);
+
+        Welcome welcome = new Welcome();
+        dispose();
     }
+
 
     @Override
     public void actionPerformed(ActionEvent e) {

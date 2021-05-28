@@ -14,7 +14,7 @@ public class Login extends JFrame implements ActionListener {
     private JLabel passwordLabel = new JLabel("Password: ", SwingConstants.CENTER);
     private JTextField userTextField = new JTextField();
     private JPasswordField passwordField = new JPasswordField();
-    private JButton registerButton = new JButton("Login");
+    private JButton loginButton = new JButton("Login");
     private JButton resetButton = new JButton("Reset");
     private JButton cancelButton = new JButton("Cancel");
     private Container container = getContentPane();
@@ -98,15 +98,38 @@ public class Login extends JFrame implements ActionListener {
         container.add(resetButton);
 
 
-        registerButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        registerButton.setBounds(65, 190, 200, 30);
-        registerButton.setBackground(Color.ORANGE);
+        loginButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        loginButton.setBounds(65, 190, 200, 30);
+        loginButton.setBackground(Color.ORANGE);
         //loginButton.setForeground(Color.BLACK);
-        container.add(registerButton);
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                login();
+            }
+        });
+        container.add(loginButton);
 
 
         setVisible(true);
     }
+
+    public void login() {
+
+//        if(Dane sie zgadzaja) {
+//
+//            no to loguj
+//            Dashboard dashboard = new Dashboard();
+//            dispose();
+//        }
+//        else {
+//            JOptionPane.showMessageDialog(null, "Incorrect login or password!");
+//        }
+
+        Dashboard dashboard = new Dashboard();
+        dispose();
+    }
+
+
 
     @Override
     public void actionPerformed(ActionEvent e) {
