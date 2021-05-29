@@ -44,6 +44,7 @@ public class Welcome extends JFrame implements ActionListener {
         loginButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         loginButton.setPreferredSize(new Dimension(200, 15));
         loginButton.setBackground(Color.ORANGE);
+        loginButton.setFocusable(false);
         //loginButton.setForeground(Color.BLACK);
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -63,6 +64,7 @@ public class Welcome extends JFrame implements ActionListener {
         registerButton.setPreferredSize(new Dimension(200, 15));
         registerButton.setBackground(Color.ORANGE);
         //registerButton.setForeground(Color.BLACK);
+        registerButton.setFocusable(false);
         registerButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Register register = new Register();

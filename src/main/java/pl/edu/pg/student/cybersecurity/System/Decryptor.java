@@ -1,10 +1,18 @@
 package pl.edu.pg.student.cybersecurity.System;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import org.apache.commons.io.FilenameUtils;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Decryptor {
@@ -17,28 +25,79 @@ public class Decryptor {
         this.file = file;
     }
 
-    public void decrypt() {
-        readMetadata();
+    public List<Object> decrypt() {
+        List<Object> metadata = readMetadata();
+        if(metadata.get(0).getClass() == boolean.class && (boolean) metadata.get(0) == false) return metadata;
+
+        // METADATA: T/F, pKey, size, type, key(optional)
+        if((Integer) metadata.get(3) == 0) {
+            decryptOnlyRSA((Integer) metadata.get(2));
+        } else {
+            decryptAESRSA();
+        }
+
+
+        return null;
     }
 
     private List<Object> readMetadata() {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            byte[] metadata = new byte[4];
-            fileInputStream.read(metadata, 0, 4);
-            Integer size = ByteBuffer.wrap(metadata).getInt();
-            System.out.println("Key size = " + size);
+            byte[] programKeyBuffer = new byte[5];
+            fileInputStream.read(programKeyBuffer, 0, 5);
+            String programKey = new String(programKeyBuffer, StandardCharsets.UTF_8);
+            if(programKey.equals("CSEDP") != true) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
+            System.out.printf("Program key = %s\n", programKey);
+            byte[] sizeBuffer = new byte[4];
+            fileInputStream.read(sizeBuffer, 0, 4);
+            Integer size = ByteBuffer.wrap(sizeBuffer).getInt();
+            if(!Arrays.asList(512, 1024, 2048, 4096).contains(size)) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
+            System.out.printf("Key size = %d\n", size);
+            byte[] typeBuffer = new byte[4];
+            fileInputStream.read(typeBuffer, 0, 4);
+            Integer type = ByteBuffer.wrap(typeBuffer).getInt();
+            if(!Arrays.asList(0, 1).contains(type)) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
+            System.out.printf("Type = %d\n", type);
+            if(type == 1) {
+                byte[] keyBuffer = new byte[size / 8];
+                fileInputStream.read(keyBuffer, 0, size / 8);
+                // metadata.add(key);
+            }
+            System.out.printf("Program key = %s, key size = %d, type = %d\n", programKey, size, type);
+            return new ArrayList<>(Arrays.asList(true, programKey, size, type));
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private List<Object> decryptOnlyRSA() {
+    private List<Object> decryptOnlyRSA(Integer size) {
+        try {
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            String baseName = FilenameUtils.getBaseName(file.getPath());
+            String extension = FilenameUtils.getExtension(file.getPath());
+            try (FileInputStream fileInputStream = new FileInputStream(file);
+                 FileOutputStream fileOutputStream = new FileOutputStream("./testing/" + baseName + "_decrypted." + extension)) {
+                fileInputStream.skip(13);
+                byte[] inputBuffer = new byte[1024];
+                int length;
+                while ((length = fileInputStream.read(inputBuffer)) != -1) {
+                    byte[] outputBuffer = cipher.update(inputBuffer, 0, length);
+                    if(outputBuffer != null) fileOutputStream.write(outputBuffer);
+                }
+                byte[] outputBuffer = cipher.doFinal();
+                if(outputBuffer != null) fileOutputStream.write(outputBuffer);
+            } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
+                e.printStackTrace();
+            }
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
 
         return null;
     }
 
-    private List<Object> encryptAESRSA() {
+    private List<Object> decryptAESRSA() {
 
         return null;
     }

@@ -60,6 +60,7 @@ public class Dashboard extends JFrame implements ActionListener {
         PKSize.setBounds(65, 40, 100, 30);
         PKSize.setOpaque(true);
         PKSize.setBackground(Color.ORANGE);
+        System.out.println(PKSize.getText());
         containerEncrypt.add(PKSize);
 
 

@@ -71,7 +71,6 @@ public class Login extends JFrame implements ActionListener {
         //userLabel.setForeground(Color.BLACK);
         container.add(passwordField);
 
-
         cancelButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         cancelButton.setBounds(65, 160, 100, 30);
         cancelButton.setBackground(Color.ORANGE);
@@ -83,7 +82,6 @@ public class Login extends JFrame implements ActionListener {
             }
         });
         container.add(cancelButton);
-
 
         resetButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         resetButton.setBounds(165, 160, 100, 30);

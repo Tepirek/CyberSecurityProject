@@ -139,4 +139,23 @@ public class Api {
         }
         return null;
     }
+
+    public List<Object> login(String login, String password) {
+        if(getUser("login", login) == null) {
+            return new ArrayList<>(Arrays.asList(false, "User with the given login doesn't exits!"));
+        }
+        String query = "SELECT * FROM users WHERE user_login = ? AND user_password = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, login);
+            statement.setString(2, password);
+            ResultSet resultSet = statement.executeQuery();
+            if(resultSet.next()) return new ArrayList<>(Arrays.asList(true, new User(resultSet.getString("user_login"), resultSet.getString("user_email"))));
+            return null;
+        } catch (SQLException ex) {
+            System.out.println("SQLException: " + ex.getMessage());
+            System.out.println("SQLState: " + ex.getSQLState());
+            System.out.println("VendorError: " + ex.getErrorCode());
+        }
+        return null;
+    }
 }

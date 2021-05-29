@@ -8,6 +8,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -20,20 +21,39 @@ public class Encryptor {
     private Integer size;
     private PublicKey publicKey;
     private File file;
+    private String type;
 
-    public Encryptor(Integer size, PublicKey publicKey, File file) {
+    public Encryptor(Integer size, PublicKey publicKey, File file, String type) {
         this.size = size;
         this.publicKey = publicKey;
         this.file = file;
-        prepareMetadata();
+        this.type = type;
+        prepareMetadata(type);
     }
 
-    public void encrypt(String type) {
-        encryptOnlyRSA();
+    public void encrypt() {
+        if(type.equals("RSA")) {
+            encryptOnlyRSA();
+        }
     }
 
-    private byte[] prepareMetadata() {
-        return ByteBuffer.allocate(4).putInt(size).array();
+    private byte[] prepareMetadata(String type) {
+        byte[] metadata;
+        if(type.equals("RSA")) {
+            metadata = ByteBuffer.allocate(13)
+                    .put("CSEDP".getBytes(StandardCharsets.UTF_8))
+                    .putInt(size)
+                    .putInt(0)
+                    .array();
+        } else {
+            metadata = ByteBuffer.allocate(13 + (size / 8))
+                    .put("CSEDP".getBytes(StandardCharsets.UTF_8))
+                    .putInt(size)
+                    .putInt(1)
+                    .put(publicKey.getEncoded())
+                    .array();
+        }
+        return metadata;
     }
 
     private List<Object> encryptOnlyRSA() {
@@ -43,8 +63,8 @@ public class Encryptor {
             String baseName = FilenameUtils.getBaseName(file.getPath());
             String extension = FilenameUtils.getExtension(file.getPath());
             try (FileInputStream fileInputStream = new FileInputStream(file);
-                 FileOutputStream fileOutputStream = new FileOutputStream(baseName + "_encrypted." + extension)) {
-                fileOutputStream.write(prepareMetadata());
+                 FileOutputStream fileOutputStream = new FileOutputStream("./testing/" + baseName + "_encrypted." + extension)) {
+                fileOutputStream.write(prepareMetadata(type));
                 byte[] inputBuffer = new byte[1024];
                 int length;
                 while ((length = fileInputStream.read(inputBuffer)) != -1) {
