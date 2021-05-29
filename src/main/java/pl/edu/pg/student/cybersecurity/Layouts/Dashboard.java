@@ -10,28 +10,35 @@ import static java.lang.System.exit;
 
 public class Dashboard extends JFrame implements ActionListener {
 
-    JTabbedPane tabbedPane = new JTabbedPane();
+    private JTabbedPane tabbedPane = new JTabbedPane();
+    private JLabel PKSize = new JLabel("PK size: ", SwingConstants.CENTER);
+    private JLabel encryptionTypeLabel = new JLabel("Encryption type: ", SwingConstants.CENTER);
+    private JLabel keyFromUser = new JLabel("PK from: ", SwingConstants.CENTER);
+    private JLabel mail = new JLabel("Mail to send: ", SwingConstants.CENTER);
+    private JTextField mailTextField = new JTextField();
 
-    JLabel PKSize = new JLabel("PK size: ", SwingConstants.CENTER);
-    JLabel encryptionTypeLabel = new JLabel("Encryption type: ", SwingConstants.CENTER);
+    private JButton fileButton = new JButton("Choose file");
+    private JButton fileButtonDecrypt = new JButton("Choose file");
+    private JButton directoryButton = new JButton("Choose directory");
+    private JButton encryptButton = new JButton("Encrypt");
+    private JButton decryptButton = new JButton("Decrypt");
+    private JButton logoutButton = new JButton("Logout");
 
-    JLabel mail = new JLabel("Mail to send: ", SwingConstants.CENTER);
-    JTextField mailTextField = new JTextField();
+    private JLabel infoDescrypt = new JLabel("INFO DECRYPT", SwingConstants.CENTER);
+    private JLabel infoEncrypt = new JLabel("INFO ENCRYPT", SwingConstants.CENTER);
 
-    JButton fileButton = new JButton("Choose file");
-    JButton fileButtonDecrypt = new JButton("Choose file");
-    JButton directoryButton = new JButton("Choose directory");
-    JButton encryptButton = new JButton("Encrypt");
-    JButton decryptButton = new JButton("Decrypt");
-    JButton logoutButton = new JButton("Logout");
+    private JLabel username = new JLabel("USER NAME", SwingConstants.CENTER);
+    private JLabel usermail = new JLabel("USER MAIL", SwingConstants.CENTER);
+    private JLabel usernameLabel = new JLabel("Your name: ", SwingConstants.CENTER);
+    private JLabel usermailLabel = new JLabel("Your mail: ", SwingConstants.CENTER);
 
-    Container containerEncrypt = new Container();
-    Container containerDecrypt = new Container();
-    Container containerAccounts = new Container();
+    private Container containerEncrypt = new Container();
+    private Container containerDecrypt = new Container();
+    private Container containerAccounts = new Container();
 
-    File fileToEncrypt;
-    File fileToDecrypt;
-    File directoryToDecrypt;
+    private File fileToEncrypt;
+    private File fileToDecrypt;
+    private File directoryToDecrypt;
 
     public Dashboard() {
 
@@ -137,7 +144,41 @@ public class Dashboard extends JFrame implements ActionListener {
         });
         containerEncrypt.add(encryptButton);
 
+
+        infoEncrypt.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        infoEncrypt.setBounds(65, 190, 200, 20);
+        infoEncrypt.setOpaque(true);
+        infoEncrypt.setBackground(Color.ORANGE);
+        //userLabel.setForeground(Color.BLACK);
+        infoEncrypt.setForeground(Color.RED);
+        //infoDescrypt.setVisible(false);
+        containerEncrypt.add(infoEncrypt);
+
+
 //-----------------------------------------------------------------------------------------//
+
+        keyFromUser.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        keyFromUser.setBounds(65, 25, 100, 30);
+        keyFromUser.setOpaque(true);
+        keyFromUser.setBackground(Color.ORANGE);
+
+        containerDecrypt.add(keyFromUser);
+
+
+        String[] userValues = {"Aro","Jano","Tomo"};
+        JComboBox userValuesBox = new JComboBox(userValues);
+        userValuesBox.setBounds(165,25,100,30);
+        userValuesBox.setBackground(Color.ORANGE);
+        keyValuesBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        Color bgColor2 = keyValuesBox.getBackground();
+        userValuesBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public void paint(Graphics g) {
+                setBackground(bgColor2);
+                super.paint(g);
+            }
+        });
+        containerDecrypt.add(userValuesBox);
 
         fileButtonDecrypt.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         fileButtonDecrypt.setBounds(65, 55, 200, 30);
@@ -149,6 +190,7 @@ public class Dashboard extends JFrame implements ActionListener {
         });
         containerDecrypt.add(fileButtonDecrypt);
 
+
         directoryButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         directoryButton.setBounds(65, 85, 200, 30);
         directoryButton.setBackground(Color.ORANGE);
@@ -158,6 +200,7 @@ public class Dashboard extends JFrame implements ActionListener {
             }
         });
         containerDecrypt.add(directoryButton);
+
 
         decryptButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         decryptButton.setBounds(65, 115, 200, 30);
@@ -169,11 +212,44 @@ public class Dashboard extends JFrame implements ActionListener {
         });
         containerDecrypt.add(decryptButton);
 
+
+        infoDescrypt.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        infoDescrypt.setBounds(65, 145, 200, 20);
+        infoDescrypt.setOpaque(true);
+        infoDescrypt.setBackground(Color.ORANGE);
+        //userLabel.setForeground(Color.BLACK);
+        infoDescrypt.setForeground(Color.RED);
+        //infoDescrypt.setVisible(false);
+        containerDecrypt.add(infoDescrypt);
+
 //-----------------------------------------------------------------------------------------//
 
+        usernameLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        usernameLabel.setBounds(65, 55, 100, 30);
+        usernameLabel.setOpaque(true);
+        usernameLabel.setBackground(Color.ORANGE);
+        containerAccounts.add(usernameLabel);
+
+        username.setBorder((BorderFactory.createLineBorder(Color.BLACK)));
+        username.setBounds(165, 55, 100, 30);
+        username.setOpaque(true);
+        username.setBackground(Color.ORANGE);
+        containerAccounts.add(username);
+
+        usermailLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        usermailLabel.setBounds(65, 85, 100, 30);
+        usermailLabel.setOpaque(true);
+        usermailLabel.setBackground(Color.ORANGE);
+        containerAccounts.add(usermailLabel);
+
+        usermail.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        usermail.setBounds(165, 85, 100, 30);
+        usermail.setOpaque(true);
+        usermail.setBackground(Color.ORANGE);
+        containerAccounts.add(usermail);
 
         logoutButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        logoutButton.setBounds(65, 85, 200, 40);
+        logoutButton.setBounds(65, 115, 200, 30);
         logoutButton.setBackground(Color.ORANGE);
         logoutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

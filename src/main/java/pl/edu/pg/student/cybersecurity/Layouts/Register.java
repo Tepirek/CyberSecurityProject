@@ -10,6 +10,7 @@ import static java.lang.Thread.sleep;
 public class Register extends JFrame implements ActionListener{
 
     private JLabel welcomeMessage = new JLabel("<html>" + "<B>" + "Register to the CyberSecurity!" + "</B>" + "</html>", SwingConstants.CENTER);
+    private JLabel info = new JLabel("", SwingConstants.CENTER);
     private JLabel userLabel = new JLabel("Username: ", SwingConstants.CENTER);
     private JLabel passwordLabel1 = new JLabel("Password: ", SwingConstants.CENTER);
     private JLabel passwordLabel2 = new JLabel("Password: ", SwingConstants.CENTER);
@@ -126,6 +127,15 @@ public class Register extends JFrame implements ActionListener{
         });
         container.add(registerButton);
 
+
+        info.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        info.setBounds(65, 235, 200, 20);
+        info.setOpaque(true);
+        info.setBackground(Color.ORANGE);
+        //userLabel.setForeground(Color.BLACK);
+        info.setForeground(Color.RED);
+        info.setVisible(false);
+        container.add(info);
 
         setVisible(true);
     }
