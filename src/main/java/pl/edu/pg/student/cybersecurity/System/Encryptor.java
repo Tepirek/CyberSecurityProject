@@ -25,11 +25,13 @@ public class Encryptor extends Crypto {
         this.type = type;
     }
 
-    public void encrypt() {
+    public List<Object> encrypt() {
         if(type.equals("RSA")) {
-            encryptOnlyRSA();
+            return encryptOnlyRSA();
+        } else if(type.equals("AES + RSA")) {
+            return encryptAESRSA();
         } else {
-            encryptAESRSA();
+            return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
         }
     }
 
@@ -97,11 +99,13 @@ public class Encryptor extends Crypto {
                 processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
                 e.printStackTrace();
+                return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
+            return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
         }
-        return null;
+        return new ArrayList<>(Arrays.asList(true, "Success!"));
     }
 
     private byte[] encryptSymmetricKey(SecretKey secretKey) {

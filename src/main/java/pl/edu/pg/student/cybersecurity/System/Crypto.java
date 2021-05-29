@@ -20,7 +20,7 @@ public class Crypto {
         if(outputBuffer != null) fileOutputStream.write(outputBuffer);
     }
 
-    protected void print(byte[] bytes) {
+    public static void print(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         sb.append("[ ");
         for (byte b : bytes) {

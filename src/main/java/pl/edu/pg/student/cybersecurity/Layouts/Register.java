@@ -1,9 +1,15 @@
 package pl.edu.pg.student.cybersecurity.Layouts;
 
+import pl.edu.pg.student.cybersecurity.System.Api;
+import pl.edu.pg.student.cybersecurity.System.KeyHandler;
+import pl.edu.pg.student.cybersecurity.System.User;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Thread.sleep;
 
@@ -25,7 +31,7 @@ public class Register extends JFrame implements ActionListener{
     public Register() {
 
         setBounds(0, 0, 500, 400);
-        setSize(330, 300);
+        setSize(500, 300);
         getContentPane().setBackground(Color.DARK_GRAY);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -108,10 +114,10 @@ public class Register extends JFrame implements ActionListener{
         resetButton.setBounds(165, 175, 100, 30);
         resetButton.setBackground(Color.ORANGE);
         //loginButton.setForeground(Color.BLACK);
-        resetButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                reset();
-            }
+        resetButton.addActionListener(e -> {
+            userTextField.setText("");
+            passwordField1.setText("");
+            passwordField2.setText("");
         });
         container.add(resetButton);
 
@@ -120,41 +126,52 @@ public class Register extends JFrame implements ActionListener{
         registerButton.setBounds(65, 205, 200, 30);
         registerButton.setBackground(Color.ORANGE);
         //loginButton.setForeground(Color.BLACK);
-        registerButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                validation();
-            }
-        });
+        registerButton.addActionListener(e -> register());
         container.add(registerButton);
 
 
         info.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        info.setBounds(65, 235, 200, 20);
+        info.setBounds(65, 235, 300, 20);
         info.setOpaque(true);
         info.setBackground(Color.ORANGE);
         //userLabel.setForeground(Color.BLACK);
         info.setForeground(Color.RED);
-        info.setVisible(false);
         container.add(info);
 
         setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-    }
-
-    public void validation() {
-        if (!passwordField1.getText().equals(passwordField2.getText())) {
-            JOptionPane.showMessageDialog(null, "Incorrect password!");
-            reset();
+    public void register() {
+        boolean validLogin = true;
+        boolean validPassword = true;
+        if(userTextField.getText().length() < 5) {
+            info.setText("Login must be at least 5 characters long!");
+            validLogin = false;
+        }
+        if (Arrays.equals(passwordField1.getPassword(), passwordField2.getPassword()) != true) {
+            info.setText("Passwords aren't equal!");
+            passwordField1.setText("");
+            passwordField2.setText("");
+            validPassword = false;
+        }
+        if(validLogin && validPassword) {
+            String login = userTextField.getText();
+            String password = new String(passwordField1.getPassword());
+            Api api = new Api();
+            List<Object> result = api.insert(login, password);
+            if((boolean) result.get(0) == true) {
+                User user = (User) api.login(login, password).get(1);
+                user.generateKeys();
+                Dashboard dashboard = new Dashboard(user);
+                dispose();
+            } else {
+                info.setText((String) result.get(1));
+            }
         }
     }
 
-    public void reset() {
-        userTextField.setText("");
-        passwordField1.setText("");
-        passwordField2.setText("");
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
     }
 }

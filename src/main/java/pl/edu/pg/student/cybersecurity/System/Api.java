@@ -1,5 +1,6 @@
 package pl.edu.pg.student.cybersecurity.System;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class Api {
         if(connection != null) return;
         try {
             connection = DriverManager.getConnection("jdbc:mysql://" + DB_HOST + "/" + DB_NAME + "?user=" + DB_USERNAME + "&password=" + DB_PASSWORD);
-            System.out.println("Connected!");
+            // System.out.println("Connected!");
         } catch (SQLException ex) {
             System.out.println("SQLException: " + ex.getMessage());
             System.out.println("SQLState: " + ex.getSQLState());
@@ -41,14 +42,20 @@ public class Api {
      */
     public List<User> getUsers() {
         String query = "SELECT * FROM users";
-        try (Statement statement = connection.createStatement();
+        try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
              ResultSet resultSet = statement.executeQuery(query)) {
             if(!resultSet.next()) return null;
+            resultSet.previous();
             List<User> users = new ArrayList<>();
             while (resultSet.next()) {
-                User user = new User(resultSet.getString("user_login"), resultSet.getString("user_email"));
+                System.out.println(resultSet.getString("user_login"));
+                System.out.println(resultSet.getString("user_email"));
+                User user = new User(resultSet.getString("user_login"),
+                        resultSet.getString("user_email"),
+                        resultSet.getBytes("user_publicKey1024"),
+                        resultSet.getBytes("user_publicKey2048"));
+                // System.out.println(user);
                 users.add(user);
-                System.out.println(user);
             }
             return users;
         } catch (SQLException ex) {
@@ -56,8 +63,8 @@ public class Api {
             System.out.println("SQLException: " + ex.getMessage());
             System.out.println("SQLState: " + ex.getSQLState());
             System.out.println("VendorError: " + ex.getErrorCode());
+            return null;
         }
-        return null;
     }
 
     /**
@@ -130,7 +137,8 @@ public class Api {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, parameter);
             ResultSet resultSet = statement.executeQuery();
-            if(resultSet.next()) return new User(resultSet.getString("user_login"), resultSet.getString("user_email"));
+            if(resultSet.next()) return new User(resultSet.getString("user_login"),
+                    resultSet.getString("user_email"));
             return null;
         } catch (SQLException ex) {
             System.out.println("SQLException: " + ex.getMessage());
@@ -150,12 +158,32 @@ public class Api {
             statement.setString(2, password);
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) return new ArrayList<>(Arrays.asList(true, new User(resultSet.getString("user_login"), resultSet.getString("user_email"))));
-            return null;
+            return new ArrayList<>(Arrays.asList(false, "Incorrect password!"));
         } catch (SQLException ex) {
             System.out.println("SQLException: " + ex.getMessage());
             System.out.println("SQLState: " + ex.getSQLState());
             System.out.println("VendorError: " + ex.getErrorCode());
         }
         return null;
+    }
+
+    public List<Object> setPublicKey(String login, byte[] publicKey, Integer keySize) {
+        String query = null;
+        if(keySize == 1024) {
+            query = "UPDATE users SET user_publicKey1024 = ? WHERE user_login = ?";
+        } else if(keySize == 2048) {
+            query = "UPDATE users SET user_publicKey2048 = ? WHERE user_login = ?";
+        }
+        try(PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setBytes(1, publicKey);
+            statement.setString(2, login);
+            statement.executeUpdate();
+            return new ArrayList<>(Arrays.asList(true, "Success!"));
+        } catch (SQLException ex) {
+            System.out.println("SQLException: " + ex.getMessage());
+            System.out.println("SQLState: " + ex.getSQLState());
+            System.out.println("VendorError: " + ex.getErrorCode());
+        }
+        return new ArrayList<>(Arrays.asList(false, "Something went wrong!"));
     }
 }

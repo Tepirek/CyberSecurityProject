@@ -1,9 +1,14 @@
 package pl.edu.pg.student.cybersecurity.Layouts;
 
+import pl.edu.pg.student.cybersecurity.System.Api;
+import pl.edu.pg.student.cybersecurity.System.User;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLOutput;
+import java.util.List;
 
 import static java.lang.Thread.sleep;
 
@@ -23,7 +28,7 @@ public class Login extends JFrame implements ActionListener {
     public Login() {
 
         setBounds(0, 0, 500, 400);
-        setSize(330, 300);
+        setSize(500, 300);
         getContentPane().setBackground(Color.DARK_GRAY);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -102,34 +107,31 @@ public class Login extends JFrame implements ActionListener {
 
 
         info.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        info.setBounds(65, 220, 200, 30);
+        info.setBounds(65, 220, 300, 30);
         info.setOpaque(true);
         info.setBackground(Color.ORANGE);
         //userLabel.setForeground(Color.BLACK);
         info.setForeground(Color.RED);
-        info.setVisible(false);
         container.add(info);
 
         setVisible(true);
     }
 
     public void login() {
-
-//        if(Dane sie zgadzaja) {
-//
-//            no to loguj
-//            Dashboard dashboard = new Dashboard();
-//            dispose();
-//        }
-//        else {
-//            JOptionPane.showMessageDialog(null, "Incorrect login or password!");
-//        }
-
-        Dashboard dashboard = new Dashboard();
-        dispose();
+        String login = userTextField.getText();
+        String password = new String(passwordField.getPassword());
+        System.out.printf("Login = %s, Password = %s\n", login, password);
+        Api api = new Api();
+        List<Object> result = api.login(login, password);
+        if((boolean) result.get(0)) {
+            User user = (User) result.get(1);
+            user.generateKeys();
+            Dashboard dashboard = new Dashboard(user);
+            dispose();
+        } else {
+            info.setText((String) result.get(1));
+        }
     }
-
-
 
     @Override
     public void actionPerformed(ActionEvent e) {

@@ -8,10 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,23 +18,30 @@ public class Decryptor extends Crypto {
     private PrivateKey privateKey;
     private File file;
 
-    public Decryptor(PrivateKey privateKey, File file) {
-        this.privateKey = privateKey;
+    public Decryptor(File file) {
         this.file = file;
     }
 
     public List<Object> decrypt() {
         List<Object> metadata = readMetadata();
-        if(metadata.get(0).getClass() == boolean.class && (boolean) metadata.get(0) == false) return metadata;
+        if((boolean) metadata.get(0) == false) return metadata;
+
+        System.out.println(metadata.size());
+        if(metadata.size() > 0) {
+            System.out.println((boolean) metadata.get(0));
+        }
+        KeyHandler keyHandler = new KeyHandler((Integer) metadata.get(2));
+        privateKey = keyHandler.getPrivateKey();
 
         if((Integer) metadata.get(3) == 0) {
             // METADATA: T/F, pKey, size, type
-            decryptOnlyRSA();
-        } else {
+            return decryptOnlyRSA();
+        } else if((Integer) metadata.get(3) == 1) {
             // METADATA: T/F, pKey, size, type, decryptedSymmetricKey, InitializationVector
-            decryptAESRSA((SecretKeySpec) metadata.get(4), (IvParameterSpec) metadata.get(5));
+            return decryptAESRSA((SecretKeySpec) metadata.get(4), (IvParameterSpec) metadata.get(5));
+        } else {
+            return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
         }
-        return null;
     }
 
     private List<Object> readMetadata() {
@@ -46,17 +50,17 @@ public class Decryptor extends Crypto {
             fileInputStream.read(programKeyBuffer, 0, 5);
             String programKey = new String(programKeyBuffer, StandardCharsets.UTF_8);
             if(programKey.equals("CSEDP") != true) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
-            // System.out.printf("Program key = %s\n", programKey);
+            System.out.printf("Program key = %s\n", programKey);
             byte[] sizeBuffer = new byte[4];
             fileInputStream.read(sizeBuffer, 0, 4);
             Integer size = ByteBuffer.wrap(sizeBuffer).getInt();
             if(!Arrays.asList(512, 1024, 2048, 4096).contains(size)) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
-            // System.out.printf("Key size = %d\n", size);
+            System.out.printf("Key size = %d\n", size);
             byte[] typeBuffer = new byte[4];
             fileInputStream.read(typeBuffer, 0, 4);
             Integer type = ByteBuffer.wrap(typeBuffer).getInt();
             if(!Arrays.asList(0, 1).contains(type)) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
-            // System.out.printf("Type = %d\n", type);
+            System.out.printf("Type = %d\n", type);
             if(type == 1) {
                 byte[] secretKeyBuffer = new byte[size / 8];
                 fileInputStream.read(secretKeyBuffer, 0, size / 8);
@@ -74,7 +78,7 @@ public class Decryptor extends Crypto {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
     }
 
     private List<Object> decryptOnlyRSA() {
@@ -89,12 +93,13 @@ public class Decryptor extends Crypto {
                 processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
                 e.printStackTrace();
+                return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
             e.printStackTrace();
+            return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
         }
-
-        return null;
+        return new ArrayList<>(Arrays.asList(true, "Success!"));
     }
 
     private List<Object> decryptAESRSA(SecretKeySpec decryptedSymmetricKey, IvParameterSpec initializationVector) {
@@ -109,11 +114,13 @@ public class Decryptor extends Crypto {
                 processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
                 e.printStackTrace();
+                return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
             }
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
+            return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
         }
-        return null;
+        return new ArrayList<>(Arrays.asList(true, "Success!"));
     }
 
     private SecretKeySpec decryptSymmetricKey(byte[] encryptedSymmetricKey) {

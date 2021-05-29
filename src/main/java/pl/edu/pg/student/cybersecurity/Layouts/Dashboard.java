@@ -1,10 +1,17 @@
 package pl.edu.pg.student.cybersecurity.Layouts;
 
+import pl.edu.pg.student.cybersecurity.System.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.exit;
 
@@ -12,7 +19,14 @@ public class Dashboard extends JFrame implements ActionListener {
 
     private JTabbedPane tabbedPane = new JTabbedPane();
     private JLabel PKSize = new JLabel("PK size: ", SwingConstants.CENTER);
+    private String[] keyValues = { "1024", "2048" };
+    private JComboBox keyValuesBox = new JComboBox(keyValues);
     private JLabel encryptionTypeLabel = new JLabel("Encryption type: ", SwingConstants.CENTER);
+    private JComboBox encryptionTypesComboBox;
+    private String[] usersValues;
+    private Map<String, Map<String, Object>> usersKeys = new HashMap<>();
+    String[] encryptionTypes = {"RSA", "AES + RSA"};
+    private JComboBox userValuesBox;
     private JLabel keyFromUser = new JLabel("PK from: ", SwingConstants.CENTER);
     private JLabel mail = new JLabel("Mail to send: ", SwingConstants.CENTER);
     private JTextField mailTextField = new JTextField();
@@ -30,7 +44,7 @@ public class Dashboard extends JFrame implements ActionListener {
     private JLabel username = new JLabel("USER NAME", SwingConstants.CENTER);
     private JLabel usermail = new JLabel("USER MAIL", SwingConstants.CENTER);
     private JLabel usernameLabel = new JLabel("Your name: ", SwingConstants.CENTER);
-    private JLabel usermailLabel = new JLabel("Your mail: ", SwingConstants.CENTER);
+    private JLabel usermailLabel = new JLabel("Your email: ", SwingConstants.CENTER);
 
     private Container containerEncrypt = new Container();
     private Container containerDecrypt = new Container();
@@ -40,7 +54,11 @@ public class Dashboard extends JFrame implements ActionListener {
     private File fileToDecrypt;
     private File directoryToDecrypt;
 
-    public Dashboard() {
+    private User user;
+
+    public Dashboard(User user) {
+
+        this.user = user;
 
         containerEncrypt.setLayout(null);
         containerEncrypt.setBackground(Color.ORANGE);
@@ -67,12 +85,8 @@ public class Dashboard extends JFrame implements ActionListener {
         PKSize.setBounds(65, 40, 100, 30);
         PKSize.setOpaque(true);
         PKSize.setBackground(Color.ORANGE);
-        System.out.println(PKSize.getText());
         containerEncrypt.add(PKSize);
 
-
-        String[] keyValues = {"1024","2048","4096"};
-        JComboBox keyValuesBox = new JComboBox(keyValues);
         keyValuesBox.setBounds(165,40,100,30);
         keyValuesBox.setBackground(Color.ORANGE);
         keyValuesBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -94,8 +108,7 @@ public class Dashboard extends JFrame implements ActionListener {
         containerEncrypt.add(encryptionTypeLabel);
 
 
-        String[] encryptionTypes = {"RSA", "AES + RSA"};
-        JComboBox encryptionTypesComboBox = new JComboBox(encryptionTypes);
+        encryptionTypesComboBox = new JComboBox(encryptionTypes);
         encryptionTypesComboBox.setBounds(165,70,100,30);
         encryptionTypesComboBox.setBackground(Color.ORANGE);
         encryptionTypesComboBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -108,6 +121,42 @@ public class Dashboard extends JFrame implements ActionListener {
         });
         containerEncrypt.add(encryptionTypesComboBox);
 
+        keyFromUser.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        keyFromUser.setBounds(65, 0, 100, 30);
+        keyFromUser.setOpaque(true);
+        keyFromUser.setBackground(Color.ORANGE);
+        containerEncrypt.add(keyFromUser);
+        Api api = new Api();
+        List<User> users = api.getUsers();
+
+        int cnt = 0;
+        String[] options = null;
+        if(users != null) {
+            options = new String[users.size()];
+            for(User u : users) {
+                options[cnt] = u.getLogin();
+                Map<String, Object> params = new HashMap<>();
+                params.put("email", u.getEmail());
+                params.put("1024", u.getPublicKey1024());
+                params.put("2048", u.getPublicKey2048());
+                usersKeys.put(u.getLogin(), params);
+                cnt++;
+            }
+        }
+        usersValues = options;
+        userValuesBox = new JComboBox(usersValues);
+        userValuesBox.setBounds(165,0,100,30);
+        userValuesBox.setBackground(Color.ORANGE);
+        keyValuesBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        Color bgColor2 = keyValuesBox.getBackground();
+        userValuesBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public void paint(Graphics g) {
+                setBackground(bgColor2);
+                super.paint(g);
+            }
+        });
+        containerEncrypt.add(userValuesBox);
 
         mail.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         mail.setBounds(65, 100, 100, 30);
@@ -157,29 +206,6 @@ public class Dashboard extends JFrame implements ActionListener {
 
 //-----------------------------------------------------------------------------------------//
 
-        keyFromUser.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        keyFromUser.setBounds(65, 25, 100, 30);
-        keyFromUser.setOpaque(true);
-        keyFromUser.setBackground(Color.ORANGE);
-
-        containerDecrypt.add(keyFromUser);
-
-
-        String[] userValues = {"Aro","Jano","Tomo"};
-        JComboBox userValuesBox = new JComboBox(userValues);
-        userValuesBox.setBounds(165,25,100,30);
-        userValuesBox.setBackground(Color.ORANGE);
-        keyValuesBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        Color bgColor2 = keyValuesBox.getBackground();
-        userValuesBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public void paint(Graphics g) {
-                setBackground(bgColor2);
-                super.paint(g);
-            }
-        });
-        containerDecrypt.add(userValuesBox);
-
         fileButtonDecrypt.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         fileButtonDecrypt.setBounds(65, 55, 200, 30);
         fileButtonDecrypt.setBackground(Color.ORANGE);
@@ -189,7 +215,6 @@ public class Dashboard extends JFrame implements ActionListener {
             }
         });
         containerDecrypt.add(fileButtonDecrypt);
-
 
         directoryButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         directoryButton.setBounds(65, 85, 200, 30);
@@ -212,7 +237,6 @@ public class Dashboard extends JFrame implements ActionListener {
         });
         containerDecrypt.add(decryptButton);
 
-
         infoDescrypt.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         infoDescrypt.setBounds(65, 145, 200, 20);
         infoDescrypt.setOpaque(true);
@@ -234,6 +258,7 @@ public class Dashboard extends JFrame implements ActionListener {
         username.setBounds(165, 55, 100, 30);
         username.setOpaque(true);
         username.setBackground(Color.ORANGE);
+        username.setText(user.getLogin());
         containerAccounts.add(username);
 
         usermailLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -246,6 +271,7 @@ public class Dashboard extends JFrame implements ActionListener {
         usermail.setBounds(165, 85, 100, 30);
         usermail.setOpaque(true);
         usermail.setBackground(Color.ORANGE);
+        usermail.setText(user.getEmail());
         containerAccounts.add(usermail);
 
         logoutButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -272,16 +298,54 @@ public class Dashboard extends JFrame implements ActionListener {
     }
 
     public void encrypt() {
+        Integer keyIndex = keyValuesBox.getSelectedIndex();
+        if(keyIndex < 0) infoEncrypt.setText("Select key size!");
+        Integer keySize = Integer.parseInt(keyValues[keyIndex]);
+        // System.out.printf("%d => %d\n", keyIndex, keySize);
 
+        Integer recipientIndex = userValuesBox.getSelectedIndex();
+        if(recipientIndex < 0) infoEncrypt.setText("Select recipient's name!");
+        String recipient = usersValues[recipientIndex];
+        // System.out.printf("%d => %s\n", recipientIndex, recipient);
+
+        Integer typeIndex = encryptionTypesComboBox.getSelectedIndex();
+        if(typeIndex < 0) infoEncrypt.setText("Select encryption type!");
+        String type = encryptionTypes[typeIndex];
+        // System.out.printf("%d => %s\n", typeIndex, type);
+
+        if(keyIndex >= 0 && recipientIndex >= 0 && typeIndex >= 0 && fileToEncrypt != null && fileToEncrypt.exists()) {
+            PublicKey publicKey;
+            if(keySize == 1024) {
+                publicKey = (PublicKey) usersKeys.get(recipient).get("1024");
+            } else if(keySize == 2048) {
+                publicKey = (PublicKey) usersKeys.get(recipient).get("2048");
+            } else {
+                infoEncrypt.setText("Error occurred!");
+                return;
+            }
+            // System.out.println(publicKey);
+            Encryptor encryptor = new Encryptor(keySize, publicKey, fileToEncrypt, type);
+            List<Object> result = encryptor.encrypt();
+            infoEncrypt.setText((String) result.get(1));
+        } else {
+            infoEncrypt.setText("Invalid input!");
+        }
     }
 
     public void decrypt() {
-
+        if(fileToDecrypt != null && fileToDecrypt.exists()) {
+            Decryptor decryptor = new Decryptor(fileToDecrypt);
+            List<Object> result = decryptor.decrypt();
+            infoDescrypt.setText((String) result.get(1));
+        } else {
+            infoDescrypt.setText("Invalid input!");
+        }
     }
 
     public void chooseFile() {
 
         JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new File("."));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
              this.fileToEncrypt = fc.getSelectedFile();
@@ -292,6 +356,7 @@ public class Dashboard extends JFrame implements ActionListener {
     public void choseFileDecrypt() {
 
         JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new File("."));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             this.fileToDecrypt = fc.getSelectedFile();
