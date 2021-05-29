@@ -1,22 +1,17 @@
 package pl.edu.pg.student.cybersecurity.System;
 
 import org.apache.commons.io.FilenameUtils;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Encryptor {
+public class Encryptor extends Crypto {
 
     private Integer size;
     private PublicKey publicKey;
@@ -28,32 +23,34 @@ public class Encryptor {
         this.publicKey = publicKey;
         this.file = file;
         this.type = type;
-        prepareMetadata(type);
     }
 
     public void encrypt() {
         if(type.equals("RSA")) {
             encryptOnlyRSA();
+        } else {
+            encryptAESRSA();
         }
     }
 
-    private byte[] prepareMetadata(String type) {
-        byte[] metadata;
-        if(type.equals("RSA")) {
-            metadata = ByteBuffer.allocate(13)
-                    .put("CSEDP".getBytes(StandardCharsets.UTF_8))
-                    .putInt(size)
-                    .putInt(0)
-                    .array();
-        } else {
-            metadata = ByteBuffer.allocate(13 + (size / 8))
-                    .put("CSEDP".getBytes(StandardCharsets.UTF_8))
-                    .putInt(size)
-                    .putInt(1)
-                    .put(publicKey.getEncoded())
-                    .array();
-        }
-        return metadata;
+    private byte[] prepareRSAMetadata() {
+        return ByteBuffer.allocate(13)
+                .put("CSEDP".getBytes(StandardCharsets.UTF_8))
+                .putInt(size)
+                .putInt(0)
+                .array();
+    }
+
+    private byte[] prepareAESRSAMetadata(byte[] encryptedSecretKey, byte[] initializationVector) {
+        // System.out.printf("SK = %d, IV = %d\n", encryptedSecretKey.length, initializationVector.length);
+        // System.out.println(size / 8);
+        return ByteBuffer.allocate(13 + (size / 8) + 16)
+                .put("CSEDP".getBytes(StandardCharsets.UTF_8))
+                .putInt(size)
+                .putInt(1)
+                .put(encryptedSecretKey)
+                .put(initializationVector)
+                .array();
     }
 
     private List<Object> encryptOnlyRSA() {
@@ -64,15 +61,8 @@ public class Encryptor {
             String extension = FilenameUtils.getExtension(file.getPath());
             try (FileInputStream fileInputStream = new FileInputStream(file);
                  FileOutputStream fileOutputStream = new FileOutputStream("./testing/" + baseName + "_encrypted." + extension)) {
-                fileOutputStream.write(prepareMetadata(type));
-                byte[] inputBuffer = new byte[1024];
-                int length;
-                while ((length = fileInputStream.read(inputBuffer)) != -1) {
-                    byte[] outputBuffer = cipher.update(inputBuffer, 0, length);
-                    if(outputBuffer != null) fileOutputStream.write(outputBuffer);
-                }
-                byte[] outputBuffer = cipher.doFinal();
-                if(outputBuffer != null) fileOutputStream.write(outputBuffer);
+                fileOutputStream.write(prepareRSAMetadata());
+                processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
                 e.printStackTrace();
                 return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
@@ -85,7 +75,43 @@ public class Encryptor {
     }
 
     private List<Object> encryptAESRSA() {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(128);
+            SecretKey secretKey = keyGenerator.generateKey();
+            byte[] initializationVector = new byte[128 / 8];
+            SecureRandom secureRandom = new SecureRandom();
+            secureRandom.nextBytes(initializationVector);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+            String baseName = FilenameUtils.getBaseName(file.getPath());
+            String extension = FilenameUtils.getExtension(file.getPath());
+            byte[] encryptedSymmetricKey = encryptSymmetricKey(secretKey);
+            System.out.printf("IV before = "); print(initializationVector);
+            System.out.printf("SecretKey before = "); print(secretKey.getEncoded());
+            System.out.printf("SecretKey encrypted = "); print(encryptedSymmetricKey);
+            try(FileInputStream fileInputStream = new FileInputStream(file);
+                FileOutputStream fileOutputStream = new FileOutputStream("./testing/" + baseName + "_encrypted." + extension)) {
+                fileOutputStream.write(prepareAESRSAMetadata(encryptedSymmetricKey, initializationVector));
+                processData(cipher, fileInputStream, fileOutputStream);
+            } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
+                e.printStackTrace();
+            }
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
+    private byte[] encryptSymmetricKey(SecretKey secretKey) {
+        try {
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+            return cipher.doFinal(secretKey.getEncoded());
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }

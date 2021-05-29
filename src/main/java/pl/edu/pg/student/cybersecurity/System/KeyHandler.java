@@ -24,7 +24,7 @@ public class KeyHandler {
 
     public KeyHandler(Integer size) {
         this.size = size;
-        if(! (boolean) loadKeys().get(0)) {
+        if(! (boolean) loadKeys(size).get(0)) {
             generateKeys(size);
         }
     }
@@ -36,13 +36,13 @@ public class KeyHandler {
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             PublicKey publicKey = keyPair.getPublic();
             PrivateKey privateKey = keyPair.getPrivate();
-            try (FileOutputStream fileOutputStream = new FileOutputStream("key.key")) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream("key" + size + ".key")) {
                 fileOutputStream.write(privateKey.getEncoded());
             } catch (IOException e) {
                 e.printStackTrace();
                 return new ArrayList<>(Arrays.asList(false, "Could not generate the keys!"));
             }
-            try (FileOutputStream fileOutputStream = new FileOutputStream("key.pub")) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream("key" + size + ".pub")) {
                 fileOutputStream.write(publicKey.getEncoded());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -55,9 +55,10 @@ public class KeyHandler {
         return new ArrayList<>(Arrays.asList(true, "Success!"));
     }
 
-    private List<Object> loadKeys() {
+    private List<Object> loadKeys(Integer size) {
         try {
-            File file = new File("key.key");
+            File file = new File("key" + size + ".key");
+            if(!file.exists()) return new ArrayList<>(Arrays.asList(false, "Could not load the keys!"));
             byte[] bytes = Files.readAllBytes(file.toPath());
             PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(bytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -69,7 +70,8 @@ public class KeyHandler {
             return new ArrayList<>(Arrays.asList(false, "Could not load the keys!"));
         }
         try {
-            File file = new File("key.pub");
+            File file = new File("key" + size + ".pub");
+            if(!file.exists()) return new ArrayList<>(Arrays.asList(false, "Could not load the keys!"));
             byte[] bytes = Files.readAllBytes(file.toPath());
             X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(bytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");

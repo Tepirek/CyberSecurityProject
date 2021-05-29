@@ -76,11 +76,9 @@ public class Login extends JFrame implements ActionListener {
         cancelButton.setBounds(65, 160, 100, 30);
         cancelButton.setBackground(Color.ORANGE);
         //cancelButton.setForeground(Color.BLACK);
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Welcome welcome = new Welcome();
-                dispose();
-            }
+        cancelButton.addActionListener(e -> {
+            Welcome welcome = new Welcome();
+            dispose();
         });
         container.add(cancelButton);
 
@@ -88,11 +86,9 @@ public class Login extends JFrame implements ActionListener {
         resetButton.setBounds(165, 160, 100, 30);
         resetButton.setBackground(Color.ORANGE);
         //loginButton.setForeground(Color.BLACK);
-        resetButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                userTextField.setText("");
-                passwordField.setText("");
-            }
+        resetButton.addActionListener(e -> {
+            userTextField.setText("");
+            passwordField.setText("");
         });
         container.add(resetButton);
 
@@ -101,11 +97,7 @@ public class Login extends JFrame implements ActionListener {
         loginButton.setBounds(65, 190, 200, 30);
         loginButton.setBackground(Color.ORANGE);
         //loginButton.setForeground(Color.BLACK);
-        loginButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                login();
-            }
-        });
+        loginButton.addActionListener(e -> login());
         container.add(loginButton);
 
 
