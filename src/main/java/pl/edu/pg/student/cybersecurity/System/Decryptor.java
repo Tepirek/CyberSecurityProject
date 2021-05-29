@@ -26,13 +26,6 @@ public class Decryptor extends Crypto {
         List<Object> metadata = readMetadata();
         if((boolean) metadata.get(0) == false) return metadata;
 
-        System.out.println(metadata.size());
-        if(metadata.size() > 0) {
-            System.out.println((boolean) metadata.get(0));
-        }
-        KeyHandler keyHandler = new KeyHandler((Integer) metadata.get(2));
-        privateKey = keyHandler.getPrivateKey();
-
         if((Integer) metadata.get(3) == 0) {
             // METADATA: T/F, pKey, size, type
             return decryptOnlyRSA();
@@ -64,6 +57,8 @@ public class Decryptor extends Crypto {
             if(type == 1) {
                 byte[] secretKeyBuffer = new byte[size / 8];
                 fileInputStream.read(secretKeyBuffer, 0, size / 8);
+                KeyHandler keyHandler = new KeyHandler(size);
+                privateKey = keyHandler.getPrivateKey();
                 SecretKeySpec decryptedSymmetricKey = decryptSymmetricKey(secretKeyBuffer);
                 byte[] initializationVector = new byte[16];
                 fileInputStream.read(initializationVector, 0, 16);
