@@ -1,3 +1,7 @@
 # Project exclude paths
 /target/
 /testing/
+key1024.key
+key1024.pub
+key2048.key
+key2048.pub

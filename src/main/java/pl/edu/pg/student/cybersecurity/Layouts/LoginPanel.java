@@ -11,7 +11,7 @@ import java.util.List;
 
 public class LoginPanel extends JPanel implements ActionListener {
 
-    private JLabel welcomeMessage = new JLabel("<html>" + "<B>" + "Login to the CyberSecurity!" + "</B>" + "</html>", SwingConstants.CENTER);
+    private JLabel welcomeMessage = new JLabel("<html>" + "<b>" + "Login to the CyberSecurity!" + "</b>" + "</html>", SwingConstants.CENTER);
     private JLabel userLabel = new JLabel("Username: ", SwingConstants.CENTER);
     private JLabel info = new JLabel("", SwingConstants.CENTER);
     private JLabel passwordLabel = new JLabel("Password: ", SwingConstants.CENTER);
@@ -115,39 +115,53 @@ public class LoginPanel extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
         if(e.getSource() == cancelButton) { cancel(); }
         if(e.getSource() == loginButton) { login(); }
         if(e.getSource() == resetButton) { reset(); }
     }
 
     public void login() {
+        boolean validLogin = true;
+        boolean validPassword = true;
+        StringBuilder stringBuilder = new StringBuilder("<html><b>");
 
         String login = userTextField.getText();
+        if(login.length() < 5 || login.length() > 20) {
+            stringBuilder.append("Login is invalid! (5 - 20 characters)<br>");
+            validLogin = false;
+        }
+
         String password = new String(passwordField.getPassword());
-        System.out.printf("Login = %s, Password = %s\n", login, password);
-        Api api = new Api();
-        List<Object> result = api.login(login, password);
-        if((boolean) result.get(0)) {
-            User user = (User) result.get(1);
-            user.generateKeys();
-            windowApp.setUser(user);
-            windowApp.getDashboardPanel().toString();
-            windowApp.getCardLayout().show(windowApp.getPanelCont(), "DashboardPanel");
+        if(password.length() < 5 || password.length() > 20) {
+            stringBuilder.append("Password is invalid! (5 - 20 characters)<br>");
+            validPassword = false;
+        }
+        if(validLogin && validPassword) {
+            Api api = new Api();
+            List<Object> result = api.login(login, password);
+            if((boolean) result.get(0)) {
+                User user = (User) result.get(1);
+                user.generateKeys();
+                windowApp.setUser(user);
+                windowApp.getDashboardPanel().updateAccount();
+                windowApp.getCardLayout().show(windowApp.getPanelCont(), "DashboardPanel");
+            } else {
+                info.setText((String) result.get(1));
+            }
         } else {
-            info.setText((String) result.get(1));
+            stringBuilder.append("</b></html>");
+            info.setSize(new Dimension(info.getWidth(), info.getPreferredSize().height));
         }
     }
 
     public void reset() {
-
         this.userTextField.setText("");
         this.passwordField.setText("");
         this.info.setText("");
     }
 
     public void cancel() {
-        windowApp.getCardLayout().show(windowApp.getPanelCont(), "WelcomPanel");
+        windowApp.getCardLayout().show(windowApp.getPanelCont(), "WelcomePanel");
     }
 }
 

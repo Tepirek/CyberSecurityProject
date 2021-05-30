@@ -1,11 +1,11 @@
 package pl.edu.pg.student.cybersecurity.Layouts;
 
+import lombok.Getter;
 import pl.edu.pg.student.cybersecurity.System.User;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
+@Getter
 
 public class WindowApp extends JFrame {
 
@@ -17,13 +17,13 @@ public class WindowApp extends JFrame {
     private JPanel welcomePanel;
     private JPanel loginPanel;
     private JPanel registerPanel;
-    private JPanel dashboardPanel;
+    private DashboardPanel dashboardPanel;
 
     public WindowApp() {
 
         setSize(new Dimension(500, 400));
 
-        welcomePanel = new WelcomPanel(this);
+        welcomePanel = new WelcomePanel(this);
         loginPanel =  new LoginPanel(this);
         registerPanel = new RegisterPanel(this);
         dashboardPanel = new DashboardPanel(this);
@@ -31,11 +31,11 @@ public class WindowApp extends JFrame {
         panelCont.setLayout(cardLayout);
 
         panelCont.add(loginPanel, "LoginPanel");
-        panelCont.add(welcomePanel, "WelcomPanel");
+        panelCont.add(welcomePanel, "WelcomePanel");
         panelCont.add(registerPanel, "RegisterPanel");
         panelCont.add(dashboardPanel, "DashboardPanel");
 
-        cardLayout.show(panelCont,"WelcomPanel");
+        cardLayout.show(panelCont,"WelcomePanel");
 
         add(panelCont);
 
@@ -44,10 +44,6 @@ public class WindowApp extends JFrame {
         setTitle("CyberSecurity - version 1.0");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
-    }
-
-    public JPanel getDashboardPanel() {
-        return dashboardPanel;
     }
 
     public CardLayout getCardLayout() {

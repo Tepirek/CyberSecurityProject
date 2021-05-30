@@ -6,22 +6,24 @@ import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class Encryptor extends Crypto {
 
     private Integer size;
     private PublicKey publicKey;
-    private File file;
     private String type;
 
     public Encryptor(Integer size, PublicKey publicKey, File file, String type) {
+        super(file);
         this.size = size;
         this.publicKey = publicKey;
-        this.file = file;
         this.type = type;
     }
 
@@ -44,8 +46,6 @@ public class Encryptor extends Crypto {
     }
 
     private byte[] prepareAESRSAMetadata(byte[] encryptedSecretKey, byte[] initializationVector) {
-        // System.out.printf("SK = %d, IV = %d\n", encryptedSecretKey.length, initializationVector.length);
-        // System.out.println(size / 8);
         return ByteBuffer.allocate(13 + (size / 8) + 16)
                 .put("CSEDP".getBytes(StandardCharsets.UTF_8))
                 .putInt(size)
@@ -59,10 +59,8 @@ public class Encryptor extends Crypto {
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            String baseName = FilenameUtils.getBaseName(file.getPath());
-            String extension = FilenameUtils.getExtension(file.getPath());
             try (FileInputStream fileInputStream = new FileInputStream(file);
-                 FileOutputStream fileOutputStream = new FileOutputStream("./testing/" + baseName + "_encrypted." + extension)) {
+                 FileOutputStream fileOutputStream = new FileOutputStream(getFileName(size, "RSA", "encrypted"))) {
                 fileOutputStream.write(prepareRSAMetadata());
                 processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
@@ -87,14 +85,9 @@ public class Encryptor extends Crypto {
             IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-            String baseName = FilenameUtils.getBaseName(file.getPath());
-            String extension = FilenameUtils.getExtension(file.getPath());
             byte[] encryptedSymmetricKey = encryptSymmetricKey(secretKey);
-            System.out.printf("IV before = "); print(initializationVector);
-            System.out.printf("SecretKey before = "); print(secretKey.getEncoded());
-            System.out.printf("SecretKey encrypted = "); print(encryptedSymmetricKey);
             try(FileInputStream fileInputStream = new FileInputStream(file);
-                FileOutputStream fileOutputStream = new FileOutputStream("./testing/" + baseName + "_encrypted." + extension)) {
+                FileOutputStream fileOutputStream = new FileOutputStream(getFileName(size, "AESRSA", "encrypted"))) {
                 fileOutputStream.write(prepareAESRSAMetadata(encryptedSymmetricKey, initializationVector));
                 processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {

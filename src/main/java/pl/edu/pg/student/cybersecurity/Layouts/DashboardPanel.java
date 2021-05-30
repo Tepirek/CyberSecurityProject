@@ -1,5 +1,6 @@
 package pl.edu.pg.student.cybersecurity.Layouts;
 
+import lombok.Getter;
 import pl.edu.pg.student.cybersecurity.System.Api;
 import pl.edu.pg.student.cybersecurity.System.Decryptor;
 import pl.edu.pg.student.cybersecurity.System.Encryptor;
@@ -10,15 +11,16 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.nio.file.Paths;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+@Getter
 
 public class DashboardPanel extends JPanel implements ActionListener {
-
-    private CardLayout cardLayout;
-    private JPanel panelCont;
 
     private JTabbedPane tabbedPane = new JTabbedPane();
     private JLabel PKSize = new JLabel("PK size: ", SwingConstants.CENTER);
@@ -26,7 +28,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
     private JComboBox keyValuesBox = new JComboBox(keyValues);
     private JLabel encryptionTypeLabel = new JLabel("Encryption type: ", SwingConstants.CENTER);
     private JComboBox encryptionTypesComboBox;
-    private String[] usersValues;
+    private String[] usersValues = {};
     private Map<String, Map<String, Object>> usersKeys = new HashMap<>();
     private String[] encryptionTypes = {"RSA", "AES + RSA"};
     private JComboBox userValuesBox;
@@ -43,8 +45,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
     private JButton logoutButton = new JButton("Logout");
     private JButton generateKeysButton = new JButton("Generate Keys");
 
-    private JLabel infoDescrypt = new JLabel("INFO DECRYPT", SwingConstants.CENTER);
-    private JLabel infoEncrypt = new JLabel("INFO ENCRYPT", SwingConstants.CENTER);
+    private JLabel infoDescrypt = new JLabel("", SwingConstants.CENTER);
+    private JLabel infoEncrypt = new JLabel("", SwingConstants.CENTER);
 
     private JLabel username = new JLabel("USER NAME", SwingConstants.CENTER);
     private JLabel usermail = new JLabel("USER MAIL", SwingConstants.CENTER);
@@ -60,7 +62,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
     private File directoryToDecrypt;
     private File directoryToEncrypt;
 
-    private WindowApp windowApp;
+    private final WindowApp windowApp;
 
     public DashboardPanel(WindowApp windowApp) {
 
@@ -103,14 +105,14 @@ public class DashboardPanel extends JPanel implements ActionListener {
         });
         containerEncrypt.add(keyValuesBox);
 
+        counter++;
+
         encryptionTypeLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         encryptionTypeLabel.setSize(new Dimension( widthElement/2, heightElement));
         encryptionTypeLabel.setLocation((windowApp.getWidth() - 2 * encryptionTypeLabel.getWidth())/2, margin + counter * heightElement);
         encryptionTypeLabel.setOpaque(true);
         encryptionTypeLabel.setBackground(Color.ORANGE);
         containerEncrypt.add(encryptionTypeLabel);
-
-        counter++;
 
         encryptionTypesComboBox = new JComboBox(encryptionTypes);
         encryptionTypesComboBox.setSize(new Dimension( widthElement/2, heightElement));
@@ -126,6 +128,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
         });
         containerEncrypt.add(encryptionTypesComboBox);
 
+        counter++;
+
         keyFromUser.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         keyFromUser.setSize(new Dimension( widthElement/2, heightElement));
         keyFromUser.setLocation((windowApp.getWidth() - 2 * keyFromUser.getWidth())/2, margin + counter * heightElement);
@@ -137,7 +141,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
         List<User> users = api.getUsers();
 
         int cnt = 0;
-        String[] options = null;
+        String[] options;
         if(users != null) {
             options = new String[users.size()];
             for(User u : users) {
@@ -149,9 +153,9 @@ public class DashboardPanel extends JPanel implements ActionListener {
                 usersKeys.put(u.getLogin(), params);
                 cnt++;
             }
+            usersValues = options;
         }
 
-        usersValues = options;
         userValuesBox = new JComboBox(usersValues);
         userValuesBox.setSize(new Dimension( widthElement/2, heightElement));
         userValuesBox.setLocation(windowApp.getWidth()/2, margin + counter * heightElement);
@@ -164,6 +168,11 @@ public class DashboardPanel extends JPanel implements ActionListener {
                 setBackground(bgColor2);
                 super.paint(g);
             }
+        });
+        userValuesBox.addActionListener(e -> {
+            int recipientIndex = userValuesBox.getSelectedIndex();
+            String recipient = usersValues[recipientIndex];
+            mailTextField.setText((String) usersKeys.get(recipient).get("email"));
         });
         containerEncrypt.add(userValuesBox);
 
@@ -331,9 +340,13 @@ public class DashboardPanel extends JPanel implements ActionListener {
         add(tabbedPane);
     }
 
+    public void updateAccount() {
+        username.setText(windowApp.getUser().getLogin());
+        usermail.setText(windowApp.getUser().getEmail());
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-
         if(e.getSource() == fileButton) { chooseFile(); }
         if(e.getSource() == encryptButton) { encrypt(); }
         if(e.getSource() == fileButtonDecrypt) { choseFileDecrypt(); }
@@ -345,23 +358,11 @@ public class DashboardPanel extends JPanel implements ActionListener {
     }
 
     public void generateKeys() {
-
         generateKeysButton.setText("Keys generated!");
         generateKeysButton.setForeground(Color.GREEN);
-
-    }
-
-    @Override
-    public String toString() {
-
-        usermail.setText(windowApp.getUser().getEmail());
-        username.setText(windowApp.getUser().getLogin());
-        usermail.setText(windowApp.getUser().getEmail());
-        return "Data update!";
     }
 
     public void chooseFile() {
-
         JFileChooser fc = new JFileChooser();
         fc.setCurrentDirectory(new File("."));
         int returnVal = fc.showOpenDialog(this);
@@ -372,9 +373,8 @@ public class DashboardPanel extends JPanel implements ActionListener {
     }
 
     public void choseFileDecrypt() {
-
         JFileChooser fc = new JFileChooser();
-        fc.setCurrentDirectory(new File("."));
+        fc.setCurrentDirectory(new File(Paths.get("C:/Cybersecurity 1.0/Encrypted Files").toString()));
         int returnVal = fc.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             this.fileToDecrypt = fc.getSelectedFile();
@@ -407,7 +407,7 @@ public class DashboardPanel extends JPanel implements ActionListener {
     public void decrypt() {
 
         if(fileToDecrypt != null && fileToDecrypt.exists()) {
-            Decryptor decryptor = new Decryptor(fileToDecrypt);
+            Decryptor decryptor = new Decryptor(windowApp.getUser(), fileToDecrypt);
             List<Object> result = decryptor.decrypt();
             infoDescrypt.setText((String) result.get(1));
         } else {
@@ -416,42 +416,62 @@ public class DashboardPanel extends JPanel implements ActionListener {
     }
 
     public void encrypt() {
+        boolean validKeyIndex = true;
+        boolean validRecipientIndex = true;
+        boolean validTypeIndex = true;
+        boolean validKeySize = true;
+        boolean validFile = true;
+        Integer keySize = -1;
+        String type = "";
+        String recipient = "";
+        StringBuilder stringBuilder = new StringBuilder("<html><b>");
 
         Integer keyIndex = keyValuesBox.getSelectedIndex();
-        if(keyIndex < 0) infoEncrypt.setText("Select key size!");
-        Integer keySize = Integer.parseInt(keyValues[keyIndex]);
-        // System.out.printf("%d => %d\n", keyIndex, keySize);
-
-        Integer recipientIndex = userValuesBox.getSelectedIndex();
-        if(recipientIndex < 0) infoEncrypt.setText("Select recipient's name!");
-        String recipient = usersValues[recipientIndex];
-        // System.out.printf("%d => %s\n", recipientIndex, recipient);
+        if(keyIndex < 0) {
+            stringBuilder.append("Select key size!<br>");
+            validKeyIndex = false;
+        } else {
+            keySize = Integer.parseInt(keyValues[keyIndex]);
+            if(keySize != 1024 && keySize != 2048) {
+                stringBuilder.append("Key size is invalid!<br>");
+                validKeySize = false;
+            }
+        }
 
         Integer typeIndex = encryptionTypesComboBox.getSelectedIndex();
-        if(typeIndex < 0) infoEncrypt.setText("Select encryption type!");
-        String type = encryptionTypes[typeIndex];
-        // System.out.printf("%d => %s\n", typeIndex, type);
+        if(typeIndex < 0) {
+            stringBuilder.append("Select encryption type!<br>");
+            validTypeIndex = false;
+        } else {
+            type = encryptionTypes[typeIndex];
+        }
 
-        if(keyIndex >= 0 && recipientIndex >= 0 && typeIndex >= 0 && fileToEncrypt != null && fileToEncrypt.exists()) {
-            PublicKey publicKey;
-            if(keySize == 1024) {
-                publicKey = (PublicKey) usersKeys.get(recipient).get("1024");
-            } else if(keySize == 2048) {
-                publicKey = (PublicKey) usersKeys.get(recipient).get("2048");
-            } else {
-                infoEncrypt.setText("Error occurred!");
-                return;
-            }
-            // System.out.println(publicKey);
+        Integer recipientIndex = userValuesBox.getSelectedIndex();
+        if(recipientIndex < 0) {
+            stringBuilder.append("Select recipient's name!<br>");
+            validRecipientIndex = false;
+        } else {
+            recipient = usersValues[recipientIndex];
+        }
+
+        if(this.fileToEncrypt == null || !this.fileToEncrypt.exists()) {
+            stringBuilder.append("Select a valid file!");
+            validFile = false;
+        }
+
+        if(validKeyIndex && validKeySize && validTypeIndex && validRecipientIndex && validFile) {
+            PublicKey publicKey = (PublicKey) usersKeys.get(recipient).get(String.valueOf(keySize));
             Encryptor encryptor = new Encryptor(keySize, publicKey, fileToEncrypt, type);
             List<Object> result = encryptor.encrypt();
             infoEncrypt.setText((String) result.get(1));
         } else {
-            infoEncrypt.setText("Invalid input!");
+            stringBuilder.append("</b></html>");
+            infoEncrypt.setText(stringBuilder.toString());
+            infoEncrypt.setSize(new Dimension(infoEncrypt.getWidth(), infoEncrypt.getPreferredSize().height));
         }
     }
 
     public void logout() {
-        windowApp.getCardLayout().show(windowApp.getPanelCont(), "WelcomPanel");
+        windowApp.getCardLayout().show(windowApp.getPanelCont(), "WelcomePanel");
     }
 }

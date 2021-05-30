@@ -2,23 +2,27 @@ package pl.edu.pg.student.cybersecurity.Layouts;
 
 import pl.edu.pg.student.cybersecurity.System.User;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
+import java.nio.file.Paths;
 
-public class WelcomPanel extends JPanel implements ActionListener {
+public class WelcomePanel extends JPanel implements ActionListener {
 
-    private JLabel welcomeMessage = new JLabel("<html>" + "<B>" + "Welcom to the CyberSecurity!" + "</B>" + "</html>", SwingConstants.CENTER);
+    private JLabel welcomeMessage = new JLabel("<html>" + "<b>" + "Welcome to the CyberSecurity!" + "</b>" + "</html>", SwingConstants.CENTER);
     private JButton loginButton = new JButton("Login");
     private JButton registerButton = new JButton("Register");
     private WindowApp windowApp;
 
-    public WelcomPanel(WindowApp windowApp) {
+    public WelcomePanel(WindowApp windowApp) {
 
         this.windowApp = windowApp;
 
         setBackground(Color.DARK_GRAY);
+
         setLayout(null);
 
         int numberOfElements = 3 +  1;

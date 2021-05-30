@@ -2,17 +2,17 @@ package pl.edu.pg.student.cybersecurity.Layouts;
 
 import pl.edu.pg.student.cybersecurity.System.Api;
 import pl.edu.pg.student.cybersecurity.System.User;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RegisterPanel extends JPanel implements ActionListener {
 
-    private JLabel welcomeMessage = new JLabel("<html>" + "<B>" + "Register to the CyberSecurity!" + "</B>" + "</html>", SwingConstants.CENTER);
+    private JLabel welcomeMessage = new JLabel("<html>" + "<b>" + "Register to the CyberSecurity!" + "</b>" + "</html>", SwingConstants.CENTER);
     private JLabel info = new JLabel("", SwingConstants.CENTER);
     private JLabel userLabel = new JLabel("Username: ", SwingConstants.CENTER);
     private JLabel mailLabel = new JLabel("Mail: ", SwingConstants.CENTER);
@@ -123,6 +123,7 @@ public class RegisterPanel extends JPanel implements ActionListener {
         cancelButton.setSize(new Dimension( widthElement / 2, heightElement));
         cancelButton.setLocation((windowApp.getWidth() - 2 * cancelButton.getWidth())/2, margin + counter * heightElement);
         cancelButton.setBackground(Color.ORANGE);
+        cancelButton.setFocusable(false);
         cancelButton.addActionListener(this);
         add(cancelButton);
 
@@ -130,6 +131,7 @@ public class RegisterPanel extends JPanel implements ActionListener {
         resetButton.setSize(new Dimension( widthElement / 2, heightElement));
         resetButton.setLocation(windowApp.getWidth()/2, margin + counter * heightElement);
         resetButton.setBackground(Color.ORANGE);
+        resetButton.setFocusable(false);
         resetButton.addActionListener(this);add(resetButton);
 
         counter++;
@@ -138,6 +140,7 @@ public class RegisterPanel extends JPanel implements ActionListener {
         registerButton.setSize(new Dimension( widthElement, heightElement));
         registerButton.setLocation((windowApp.getWidth() - registerButton.getWidth())/2, margin + counter * heightElement);
         registerButton.setBackground(Color.ORANGE);
+        registerButton.setFocusable(false);
         registerButton.addActionListener(this);
         add(registerButton);
 
@@ -162,22 +165,34 @@ public class RegisterPanel extends JPanel implements ActionListener {
 
     public void register() {
         boolean validLogin = true;
+        boolean validEmail = true;
         boolean validPassword = true;
-        if(userTextField.getText().length() < 5) {
-            info.setText("Login must be at least 5 characters long!");
+        StringBuilder stringBuilder = new StringBuilder("<html><b>");
+        String login = userTextField.getText();
+        if(login.length() < 5 || login.length() > 20) {
+            stringBuilder.append("Login is invalid (5 - 20 characters)!<br>");
             validLogin = false;
         }
-        if (Arrays.equals(passwordField1.getPassword(), passwordField2.getPassword()) != true) {
-            info.setText("Passwords aren't equal!");
+        String email = mailTextField.getText();
+        Pattern pattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+        Matcher matcher = pattern.matcher(email);
+        if(!matcher.matches()) {
+            stringBuilder.append("Email doesn't match email structure!<br>");
+            validEmail = false;
+        }
+        String password = new String(passwordField1.getPassword());
+        if (!password.equals(new String(passwordField2.getPassword()))) {
+            stringBuilder.append("Passwords aren't equal!<br>");
+            validPassword = false;
+            if(password.length() < 5 || password.length() > 20) {
+                stringBuilder.append("Password is invalid! (5 - 20 characters)<br>");
+            }
             passwordField1.setText("");
             passwordField2.setText("");
-            validPassword = false;
         }
-        if(validLogin && validPassword) {
-            String login = userTextField.getText();
-            String password = new String(passwordField1.getPassword());
+        if(validLogin && validEmail && validPassword) {
             Api api = new Api();
-            List<Object> result = api.insert(login, password);
+            List<Object> result = api.insert(login, email, password);
             if((boolean) result.get(0) == true) {
                 User user = (User) api.login(login, password).get(1);
                 user.generateKeys();
@@ -187,17 +202,20 @@ public class RegisterPanel extends JPanel implements ActionListener {
             } else {
                 info.setText((String) result.get(1));
             }
+        } else {
+            stringBuilder.append("</b></html>");
+            info.setText(stringBuilder.toString());
+            info.setSize(new Dimension(info.getWidth(), info.getPreferredSize().height));
         }
     }
 
     public void reset() {
-
         userTextField.setText("");
         passwordField1.setText("");
         passwordField2.setText("");
     }
 
     public void cancel() {
-        windowApp.getCardLayout().show(windowApp.getPanelCont(), "WelcomPanel");
+        windowApp.getCardLayout().show(windowApp.getPanelCont(), "WelcomePanel");
     }
 }

@@ -1,9 +1,6 @@
 package pl.edu.pg.student.cybersecurity.System;
 
 import lombok.Getter;
-import lombok.ToString;
-
-import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -34,8 +31,8 @@ public class User {
     }
 
     public void generateKeys() {
-        KeyHandler keyHandler1024 = new KeyHandler(1024);
-        KeyHandler keyHandler2048 = new KeyHandler(2048);
+        KeyHandler keyHandler1024 = new KeyHandler(login, 1024);
+        KeyHandler keyHandler2048 = new KeyHandler(login, 2048);
         Api api = new Api();
         api.setPublicKey(login, keyHandler1024.getPublicKey().getEncoded(), 1024);
         api.setPublicKey(login, keyHandler2048.getPublicKey().getEncoded(), 2048);
