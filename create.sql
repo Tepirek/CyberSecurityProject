@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
     user_login TEXT NOT NULL,
     user_email TEXT NOT NULL,
     user_password TEXT NOT NULL,
+    user_publicKey512 BLOB,
     user_publicKey1024 BLOB,
     user_publicKey2048 BLOB,
+    user_publicKey4096 BLOB,
     created_at TIMESTAMP
                                  );

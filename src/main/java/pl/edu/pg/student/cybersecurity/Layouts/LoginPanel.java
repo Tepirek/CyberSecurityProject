@@ -144,6 +144,7 @@ public class LoginPanel extends JPanel implements ActionListener {
                 user.generateKeys();
                 windowApp.setUser(user);
                 windowApp.getDashboardPanel().updateAccount();
+                windowApp.getDashboardPanel().updateRecipients();
                 windowApp.getCardLayout().show(windowApp.getPanelCont(), "DashboardPanel");
             } else {
                 info.setText((String) result.get(1));

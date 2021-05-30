@@ -1,25 +1,28 @@
 package pl.edu.pg.student.cybersecurity.System;
 
-import org.apache.commons.io.FilenameUtils;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.security.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 public class Encryptor extends Crypto {
 
-    private Integer size;
-    private PublicKey publicKey;
-    private String type;
+    private final Integer size;
+    private final PublicKey publicKey;
+    private final String type;
 
+    /**
+     * Constructor for Encryptor class.
+     * @param size
+     * @param publicKey
+     * @param file
+     * @param type
+     */
     public Encryptor(Integer size, PublicKey publicKey, File file, String type) {
         super(file);
         this.size = size;
@@ -56,14 +59,23 @@ public class Encryptor extends Crypto {
     }
 
     private List<Object> encryptOnlyRSA() {
+        StringBuilder stringBuilder = new StringBuilder("<html><b>");
+        String fileName = getFileName(size, "RSA", "encrypted");
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             try (FileInputStream fileInputStream = new FileInputStream(file);
-                 FileOutputStream fileOutputStream = new FileOutputStream(getFileName(size, "RSA", "encrypted"))) {
+                 FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
                 fileOutputStream.write(prepareRSAMetadata());
                 processData(cipher, fileInputStream, fileOutputStream);
-            } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+                stringBuilder.append("Encryption failed! Maximum file sizes: <br>");
+                stringBuilder.append("<table><tr><td>RSA(512) = 53 bytes</td><td>RSA(1024) = 117 bytes</td></tr>");
+                stringBuilder.append("<tr><td>RSA(2048) = 245bytes</td><td>RSA(4096) = 501 bytes</td></tr></table>");
+                stringBuilder.append("</b></html>");
+                return new ArrayList<>(Arrays.asList(false, stringBuilder.toString()));
+            } catch (IOException | BadPaddingException e) {
                 e.printStackTrace();
                 return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
             }
@@ -71,10 +83,11 @@ public class Encryptor extends Crypto {
             e.printStackTrace();
             return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
         }
-        return new ArrayList<>(Arrays.asList(true, "Success!"));
+        return new ArrayList<>(Arrays.asList(true, "Success!", fileName));
     }
 
     private List<Object> encryptAESRSA() {
+        String fileName = getFileName(size, "AESRSA", "encrypted");
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
             keyGenerator.init(128);
@@ -87,7 +100,7 @@ public class Encryptor extends Crypto {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
             byte[] encryptedSymmetricKey = encryptSymmetricKey(secretKey);
             try(FileInputStream fileInputStream = new FileInputStream(file);
-                FileOutputStream fileOutputStream = new FileOutputStream(getFileName(size, "AESRSA", "encrypted"))) {
+                FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
                 fileOutputStream.write(prepareAESRSAMetadata(encryptedSymmetricKey, initializationVector));
                 processData(cipher, fileInputStream, fileOutputStream);
             } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
@@ -98,7 +111,7 @@ public class Encryptor extends Crypto {
             e.printStackTrace();
             return new ArrayList<>(Arrays.asList(false, "Encryption failed!"));
         }
-        return new ArrayList<>(Arrays.asList(true, "Success!"));
+        return new ArrayList<>(Arrays.asList(true, "Success!", fileName));
     }
 
     private byte[] encryptSymmetricKey(SecretKey secretKey) {

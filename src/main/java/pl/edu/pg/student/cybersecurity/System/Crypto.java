@@ -1,8 +1,6 @@
 package pl.edu.pg.student.cybersecurity.System;
 
-import lombok.AllArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -16,12 +14,28 @@ import java.util.Date;
 
 public class Crypto {
 
+    /**
+     * File to be processed
+     */
     protected File file;
 
+    /**
+     * Default constructor
+     * @param file file to be processed
+     */
     public Crypto(File file) {
         this.file = file;
     }
 
+    /**
+     * Function to process file encryption/decryption.
+     * @param cipher cipher that is applied to process the file
+     * @param fileInputStream input stream
+     * @param fileOutputStream output stream
+     * @throws IOException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
     protected void processData(Cipher cipher, FileInputStream fileInputStream, FileOutputStream fileOutputStream) throws IOException, IllegalBlockSizeException, BadPaddingException {
         byte[] inputBuffer = new byte[1024];
         int length;
@@ -33,6 +47,13 @@ public class Crypto {
         if(outputBuffer != null) fileOutputStream.write(outputBuffer);
     }
 
+    /**
+     * Function that returns a specific filename for the processed file.
+     * @param size size of the key
+     * @param mode encryption mode
+     * @param type encryption/decryption
+     * @return String
+     */
     protected String getFileName(Integer size, String mode, String type) {
         String baseName = FilenameUtils.getBaseName(file.getPath()).split("__")[0];
         String extension = FilenameUtils.getExtension(file.getPath());
@@ -43,15 +64,5 @@ public class Crypto {
         Date date = new Date();
         String dateString = simpleDateFormat.format(date);
         return Paths.get(path, baseName + "__" + size + "__" + mode + "__" + dateString + "__" + type + "." + extension).toString();
-    }
-
-    public static void print(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[ ");
-        for (byte b : bytes) {
-            sb.append(String.format("0x%02X ", b));
-        }
-        sb.append("]");
-        System.out.printf("%s\n", sb);
     }
 }

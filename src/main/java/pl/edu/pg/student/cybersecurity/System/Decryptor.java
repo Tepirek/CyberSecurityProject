@@ -37,35 +37,52 @@ public class Decryptor extends Crypto {
     }
 
     private List<Object> readMetadata() {
+        boolean validProgramKey = true;
+        boolean validKeySize = true;
+        boolean validEncryptionType = true;
+        StringBuilder stringBuilder = new StringBuilder("<html><b>");
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-
             byte[] programKeyBuffer = new byte[5];
             fileInputStream.read(programKeyBuffer, 0, 5);
             String programKey = new String(programKeyBuffer, StandardCharsets.UTF_8);
-            if(!programKey.equals("CSEDP")) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
+            if(!programKey.equals("CSEDP")) {
+                stringBuilder.append("Decryption failed, couldn't read program key!<br>");
+                validProgramKey = false;
+            }
 
             byte[] sizeBuffer = new byte[4];
             fileInputStream.read(sizeBuffer, 0, 4);
             Integer size = ByteBuffer.wrap(sizeBuffer).getInt();
-            if(!Arrays.asList(1024, 2048).contains(size)) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
+            if(!Arrays.asList(512, 1024, 2048, 4096).contains(size)) {
+                stringBuilder.append("Decryption failed, couldn't read key size!<br>");
+                validKeySize = false;
+            }
 
             byte[] typeBuffer = new byte[4];
             fileInputStream.read(typeBuffer, 0, 4);
             Integer type = ByteBuffer.wrap(typeBuffer).getInt();
-            if(!Arrays.asList(0, 1).contains(type)) return new ArrayList<>(Arrays.asList(false, "Decryption failed!"));
-            
-            if(type == 1) {
-                byte[] secretKeyBuffer = new byte[size / 8];
-                fileInputStream.read(secretKeyBuffer, 0, size / 8);
-                KeyHandler keyHandler = new KeyHandler(user.getLogin(), size);
-                this.privateKey = keyHandler.getPrivateKey();
-                SecretKeySpec decryptedSymmetricKey = decryptSymmetricKey(secretKeyBuffer);
-                byte[] initializationVector = new byte[16];
-                fileInputStream.read(initializationVector, 0, 16);
-                IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
-                return new ArrayList<>(Arrays.asList(true, programKey, size, type, decryptedSymmetricKey, ivParameterSpec));
+            if(!Arrays.asList(0, 1).contains(type)) {
+                stringBuilder.append("Decryption failed, couldn't read encryption type!<br>");
+                validEncryptionType = false;
             }
-            return new ArrayList<>(Arrays.asList(true, programKey, size, type));
+
+            if(validProgramKey && validKeySize && validEncryptionType) {
+                if(type == 1) {
+                    byte[] secretKeyBuffer = new byte[size / 8];
+                    fileInputStream.read(secretKeyBuffer, 0, size / 8);
+                    KeyHandler keyHandler = new KeyHandler(user.getLogin(), size);
+                    this.privateKey = keyHandler.getPrivateKey();
+                    SecretKeySpec decryptedSymmetricKey = decryptSymmetricKey(secretKeyBuffer);
+                    byte[] initializationVector = new byte[16];
+                    fileInputStream.read(initializationVector, 0, 16);
+                    IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
+                    return new ArrayList<>(Arrays.asList(true, programKey, size, type, decryptedSymmetricKey, ivParameterSpec));
+                }
+                return new ArrayList<>(Arrays.asList(true, programKey, size, type));
+            } else {
+                stringBuilder.append("</b></html>");
+                return new ArrayList<>(Arrays.asList(false, stringBuilder.toString()));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

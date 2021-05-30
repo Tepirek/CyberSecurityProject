@@ -43,7 +43,7 @@ public class KeyHandler {
         String path = Paths.get("C:/CyberSecurity 1.0/Config/").toString();
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(size);
+            keyPairGenerator.initialize(size, new SecureRandom());
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             publicKey = keyPair.getPublic();
             privateKey = keyPair.getPrivate();

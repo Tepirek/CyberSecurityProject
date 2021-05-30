@@ -9,13 +9,28 @@ import java.util.List;
 
 public class Api {
 
-    private String DB_HOST = "localhost";
-    private String DB_NAME = "cybersecurity";
-    private String DB_USERNAME = "root";
-    private String DB_PASSWORD = "";
+    /**
+     * Database's host name
+     */
+    private final String DB_HOST = "localhost";
+    /**
+     * Database's name
+     */
+    private final String DB_NAME = "cybersecurity";
+    /**
+     * Database's username
+     */
+    private final String DB_USERNAME = "root";
+    /**
+     * Database's password
+     */
+    private final String DB_PASSWORD = "";
 
     private Connection connection = null;
 
+    /**
+     * Default constructor.
+     */
     public Api() {
         connect();
     }
@@ -35,8 +50,8 @@ public class Api {
     }
 
     /**
-     *
-     * @return
+     * Returns list of users from database.
+     * @return List of User objects
      */
     public List<User> getUsers() {
         String query = "SELECT * FROM users";
@@ -49,8 +64,10 @@ public class Api {
                 User user = new User(
                         resultSet.getString("user_login"),
                         resultSet.getString("user_email"),
+                        resultSet.getBytes("user_publicKey512"),
                         resultSet.getBytes("user_publicKey1024"),
-                        resultSet.getBytes("user_publicKey2048")
+                        resultSet.getBytes("user_publicKey2048"),
+                        resultSet.getBytes("user_publicKey4096")
                 );
                 users.add(user);
             }
@@ -64,10 +81,11 @@ public class Api {
     }
 
     /**
-     *
+     * Inserts a new user to the database. Returns TRUE if insertion was successful, otherwise FALSE with adequate error description.
      * @param login user's login
+     * @param email user's email
      * @param password user's password
-     * @return TRUE if the operation was successful, otherwise FALSE
+     * @return List of objects
      */
     public List<Object> insert(String login, String email, String password) {
         if(getUser("login", login) != null) {
@@ -96,10 +114,10 @@ public class Api {
     }
 
     /**
-     * Updates email of a record from the database that matches the given login.
+     * Updates email of a record from the database that matches the given login. Returns TRUE if update was successful, otherwise FALSE with adequate error description.
      * @param login user's login
      * @param email email to be set
-     * @return TRUE if the operation was successful, otherwise FALSE
+     * @return List of objects
      */
     public List<Object> updateEmail(String login, String email) {
         if(getUser("login", login) == null) {
@@ -146,6 +164,12 @@ public class Api {
         return null;
     }
 
+    /**
+     * Performs login of a user. Returns TRUE if login was successful, otherwise FALSE with adequate error description.
+     * @param login user's login
+     * @param password user's password
+     * @return List of objects
+     */
     public List<Object> login(String login, String password) {
         if(getUser("login", login) == null) {
             return new ArrayList<>(Arrays.asList(false, "User with the given login doesn't exits!"));
@@ -168,12 +192,23 @@ public class Api {
         return null;
     }
 
+    /**
+     * Stores user's public key in the database. Returns TRUE if operation was successful, otherwise FALSE with adequate error description.
+     * @param login user's login
+     * @param publicKey user's public key
+     * @param keySize size of the public key
+     * @return List of objects
+     */
     public List<Object> setPublicKey(String login, byte[] publicKey, Integer keySize) {
         String query = null;
-        if(keySize == 1024) {
+        if(keySize == 512) {
+            query = "UPDATE users SET user_publicKey512 = ? WHERE user_login = ?";
+        } else if(keySize == 1024) {
             query = "UPDATE users SET user_publicKey1024 = ? WHERE user_login = ?";
         } else if(keySize == 2048) {
             query = "UPDATE users SET user_publicKey2048 = ? WHERE user_login = ?";
+        } else if(keySize == 4096) {
+            query = "UPDATE users SET user_publicKey4096 = ? WHERE user_login = ?";
         }
         try(PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setBytes(1, publicKey);
