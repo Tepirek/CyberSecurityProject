@@ -13,7 +13,7 @@ public class Api {
     private String DB_HOST = "localhost";
     private String DB_NAME = "cybersecurity";
     private String DB_USERNAME = "root";
-    private String DB_PASSWORD = "";
+    private String DB_PASSWORD = "admin";
 
     private Connection connection = null;
 
