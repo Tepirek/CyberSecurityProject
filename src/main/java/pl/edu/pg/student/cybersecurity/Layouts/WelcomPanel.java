@@ -21,7 +21,7 @@ public class WelcomPanel extends JPanel implements ActionListener {
         setBackground(Color.DARK_GRAY);
         setLayout(null);
 
-        int numberOfElements = 3 + 1;
+        int numberOfElements = 3 +  1;
         int margin = 100;
 
         int heightElement = (windowApp.getHeight() - 2 * margin) / numberOfElements;
